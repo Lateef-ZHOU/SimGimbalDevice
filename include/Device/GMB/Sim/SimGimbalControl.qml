@@ -18,13 +18,13 @@ Section {
         const previous = pan ? root.settings.panSpeed : root.settings.tiltSpeed
         if (value === previous) return
         const label = pan ? qsTr("水平速度") : qsTr("俯仰速度")
-        if (root.settings.isLocked) {
+        if (root.settings.deviceState.isLocked) {
             root.settings.logMessage(qsTr("设备正被占用，%1未改").arg(label))
             return
         }
         const panSpeed = pan ? value : root.settings.panSpeed
         const tiltSpeed = pan ? root.settings.tiltSpeed : value
-        if (root.settings.isOpen && !root.device.setSpeeds(panSpeed, tiltSpeed)) return
+        if (root.settings.deviceState.isOpen && !root.device.setSpeeds(panSpeed, tiltSpeed)) return
         if (pan) root.settings.panSpeed = value
         else root.settings.tiltSpeed = value
         root.settings.logMessage(qsTr("%1：%2 °/s").arg(label).arg(value.toFixed(1)))

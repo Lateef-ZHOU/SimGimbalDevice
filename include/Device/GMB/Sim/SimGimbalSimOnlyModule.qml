@@ -38,15 +38,18 @@ ModulePage {
     objectName: "SimGimbalSimOnlyModule"
     readonly property string name: internals.device.device.displayName
     readonly property string subtitle: internals.device.device.subtitle
-    readonly property bool isOpen: internals.device.device.isOpen
-    readonly property bool isLocked: internals.device.device.isLocked
-    readonly property string holder: internals.device.device.holder
+    // 借用公共只读资源接口，不暴露具体型号后端或缓存状态。
+    readonly property var deviceState: internals.device.device
 
     // 连接异步完成：启动期间的编辑仍归 QML，此时把最新值排入电机线程。
     // 对齐失败就关闭本次连接，不能让界面设置与仍在运行的电机限速分离。
-    onIsOpenChanged: {
-        if (root.isOpen && !internals.device.setSpeeds(root.panSpeed, root.tiltSpeed))
-            internals.device.close()
+    Connections {
+        target: root.deviceState.logSource
+        function onConnectionChanged(phase): void {
+            if (phase === ResourcePhase.Acquired && root.deviceState.isOpen
+                && !internals.device.setSpeeds(root.panSpeed, root.tiltSpeed))
+                internals.device.close()
+        }
     }
 
     // 配置加载完成后再连接，后端仍只由所属官邸调用。

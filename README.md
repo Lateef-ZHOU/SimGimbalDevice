@@ -34,3 +34,8 @@ MIT，Copyright (c) 2026 周涛（ZHOU TAO）。Qt、libserialport、libpcap/Npc
 simonly 页面保留角度历史、安装姿态、定位和两轴限速，不提供连接栏。应用先调用 applyConfiguration，再调用 open；不在页面构造中抢先连接。configuration/configurationChanged 供应用读写 JSON，页面不持文件或配置副本。
 
 [LiDAR_DataACQ-simonly](https://github.com/Lateef-ZHOU/LiDAR_DataACQ-simonly) 通过固定版本装配这些入口，负责 JSON、命令行、设备就绪后启动和系统信号取消。窗口隐藏仍保留历史，不触发实际绘制。测试创建两套真实页面并检查后端唯一性、销毁和精简分区；跨设备的三任务采样与保存由应用集成测试覆盖。
+
+## 资源阶段通知（2026-11-02）
+
+连接采用 HandleCore 的 `connectionChanged(ResourcePhase)`；主动关闭前在所属线程同步发 `AboutToRelease`，完成事件用于回读现状。页面借出已有 `deviceState` 机制对象，不再保存 isOpen/isLocked/holder 的 QML 转交属性；标签通过连接/锁完成阶段回读，不恢复通用 statusChanged。固定依赖已同步；本轮提交尚未推送，验证使用显式本地源码覆盖。
+首次连接和重连的 `Acquired` 到达时按实际连接回读并同步页面速度；原占用时拒改和同步失败关闭规则保留。

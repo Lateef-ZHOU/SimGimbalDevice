@@ -1,10 +1,10 @@
 #pragma once
-#include "Device/GMB/GMBCollector.h"
+#include "GMBCollector.h"
 #include <chrono>
 #include <QByteArray>
 #include <QList>
 
-#include "Algorithm/Geometry/GimbalModel.h" // PanTiltModel（目标位形）
+#include "GimbalModel.h" // PanTiltModel（目标位形）
 #include <SimGimbalProtocol.h>  // 库内命令/回报与两轴限速
 
 // ============================================================

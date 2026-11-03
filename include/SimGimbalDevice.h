@@ -9,9 +9,9 @@
 #include <QUrl>
 #include <QVariantMap>
 
-#include "Algorithm/Geometry/GimbalModel.h"  // PanTiltModel
-#include "Device/GMB/GMBDevice.h"            // 云台族两层
-#include "Device/GMB/Sim/SimGimbalRunSide.h" // 宪法 + 词汇
+#include "GimbalModel.h"  // PanTiltModel
+#include "GMBDevice.h"            // 云台族两层
+#include "SimGimbalRunSide.h" // 宪法 + 词汇
 #include <SimGimbalHandle.h>   // 连接机制：虚拟电机
 
 // ============================================================

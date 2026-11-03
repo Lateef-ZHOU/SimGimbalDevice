@@ -28,8 +28,7 @@ qt_add_qml_module(LidarSimGimbalDevice STATIC URI Lidar.SimGimbal VERSION 1.0
     IMPORT_PATH ${import_paths}
     SOURCES ${headers} QML_FILES ${views})
 add_library(Lidar::SimGimbalDevice ALIAS LidarSimGimbalDevice)
-target_include_directories(LidarSimGimbalDevice PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/include"
-    PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/include/Device/GMB/Sim")
+target_include_directories(LidarSimGimbalDevice PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/include")
 target_link_libraries(LidarSimGimbalDevice PUBLIC Lidar::TaskUI Lidar::SimGimbal)
 target_compile_features(LidarSimGimbalDevice PUBLIC cxx_std_20)
 target_compile_definitions(LidarSimGimbalDevice PUBLIC QT_NO_KEYWORDS)

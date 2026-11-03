@@ -30,7 +30,6 @@ class SimGimbalCore final : public Device<SimGimbalHandle, SimGimbalCollector>
     Q_OBJECT
     Q_PROPERTY(QString displayName READ displayName CONSTANT)
     Q_PROPERTY(QString subtitle READ subtitle CONSTANT)
-    Q_PROPERTY(QObject *logSource READ logSourceObject CONSTANT)
     Q_PROPERTY(bool isOpen READ isOpen)
     Q_PROPERTY(bool isLocked READ isLocked)
     Q_PROPERTY(QString holder READ holder)
@@ -102,7 +101,7 @@ public Q_SLOTS:
             return false;
         if (!this->device().open(SimGimbalParams{.startPan = 0.0, .startTilt = 0.0, .tick = SimGimbalConfig::uplinkInterval, .limits = *limits}))
         {
-            Q_EMIT this->device().logSource().logMessage(QStringLiteral("虚拟云台已在运行"));
+            Q_EMIT this->device().logMessage(QStringLiteral("虚拟云台已在运行"));
             return false;
         }
         return true;
@@ -119,7 +118,7 @@ public Q_SLOTS:
     }
     bool setMounting(const double azimuth, const double elevation, const double roll)
     {
-        return GMBDeviceBase::setMounting(WorldModel(azimuth, elevation, roll), {});
+        return GMBDevice::setMounting(WorldModel(azimuth, elevation, roll), {});
     }
     bool issueStop() override { return this->device().send(SimGimbalVocab::stopOf(), {}); }
 
@@ -135,7 +134,7 @@ private:
     {
         if (!std::isfinite(pan) || !std::isfinite(tilt))
         {
-            Q_EMIT this->device().logSource().logMessage(QStringLiteral("虚拟云台速度必须是有限数值，未提交"));
+            Q_EMIT this->device().logMessage(QStringLiteral("虚拟云台速度必须是有限数值，未提交"));
             return std::nullopt;
         }
         const auto normalize = [](const double value) {
@@ -165,7 +164,7 @@ private:
     {
         if (!SimGimbalVocab::withinTravel(target.pan(), target.tilt()))
         {
-            Q_EMIT this->device().logSource().logMessage(QStringLiteral("目标云台角（水平 %1°，俯仰 %2°）超出行程，未下发")
+            Q_EMIT this->device().logMessage(QStringLiteral("目标云台角（水平 %1°，俯仰 %2°）超出行程，未下发")
                                             .arg(target.pan(), 0, 'f', 2).arg(target.tilt(), 0, 'f', 2));
             return false;
         }

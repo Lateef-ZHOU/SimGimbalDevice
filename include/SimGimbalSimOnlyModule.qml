@@ -44,7 +44,7 @@ ModulePage {
     // 连接异步完成：启动期间的编辑仍归 QML，此时把最新值排入电机线程。
     // 对齐失败就关闭本次连接，不能让界面设置与仍在运行的电机限速分离。
     Connections {
-        target: root.deviceState.logSource
+        target: root.deviceState
         function onConnectionChanged(phase): void {
             if (phase === ResourcePhase.Acquired && root.deviceState.isOpen
                 && !internals.device.setSpeeds(root.panSpeed, root.tiltSpeed))
@@ -80,7 +80,7 @@ ModulePage {
         readonly property var controlParameters: device.controlParameters()
     }
     Connections {
-        target: internals.device.device.logSource
+        target: internals.device.device
         function onLogMessage(text): void { root.logMessage(text) }
     }
 }

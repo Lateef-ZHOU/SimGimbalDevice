@@ -5,7 +5,7 @@ include(FetchContent)
 if(NOT TARGET Lidar::HandleCore)
     FetchContent_Declare(lidar_handle_core
         GIT_REPOSITORY https://github.com/Lateef-ZHOU/HandleCore.git
-        GIT_TAG 5afbfc6b2ee5b9c8a4e1138e8c2ab7a2d02b0e56)
+        GIT_TAG 9d74a19b91494354b3709bed04603a61ed3408bd)
     FetchContent_MakeAvailable(lidar_handle_core)
 endif()
 add_library(HandleSimGimbal STATIC)

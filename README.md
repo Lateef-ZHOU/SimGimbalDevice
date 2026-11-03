@@ -81,3 +81,10 @@ ctest --test-dir build-handle -C Release --output-on-failure
 设备名称/副标题由构造传入 DeviceBase 的公开 const 成员，Qt 通过 MEMBER CONSTANT 直接暴露；占用查询只保留 holder，Qt 用无效 QVariant 表示空闲、字符串表示占用，删除 isLocked 属性。既有连接、重连、收发和取消逻辑保持。
 
 本轮仅本地整理；集成验证记录见主程序 docs/maintenance/validation.md，不推送。
+
+
+## 2026-11-04：Handle 连接入口统一（用户定）
+
+仿真 Handle 验证同步使用 open/close 连接入口；运动定时器及重连关闭行为不变。
+
+Windows 独立 Handle 构建与 CTest 2/2 通过，主程序增量构建和八秒离屏冒烟通过。 依赖固定到相邻本地提交，尚未推送，联调使用源码覆盖。

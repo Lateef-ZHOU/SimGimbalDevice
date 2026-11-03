@@ -58,9 +58,9 @@ static void rejectedConnections()
                          [&](const QString &) { ++logs; }, Qt::DirectConnection);
         QObject::connect(&handle, &SimGimbalHandle::connectionChanged, &handle,
                          [&](HandleCore::ResourcePhase phase) { if (phase == HandleCore::ResourcePhase::Acquired) ++opened; }, Qt::DirectConnection);
-        require(handle.start(p), "start must retain asynchronous acceptance contract");
+        require(handle.open(p), "start must retain asynchronous acceptance contract");
         require(until([&] { return !handle.isRunning(); }), "invalid open did not finish");
-        handle.stop();
+        handle.close();
         require(!handle.isOpen() && frames == 0 && opened == 0 && logs >= 1, "invalid params created a connection");
     }
 }
@@ -92,7 +92,7 @@ static void traffic()
     };
     require(!handle.send(command(Command::Stop)), "offline send accepted");
     SimGimbalParams params{350, -170, 2ms, {0, 0}};
-    require(handle.start(params) && until([&] { return connections == 1 && frames > 0; }), "open/report");
+    require(handle.open(params) && until([&] { return connections == 1 && frames > 0; }), "open/report");
     require(arrived(350, -170), "initial pose");
     require(handle.send(command(Command::GoTo, 370, -190)) && arrived(10, 170), "wrap target delivery");
     const double nan = std::numeric_limits<double>::quiet_NaN();
@@ -104,7 +104,7 @@ static void traffic()
              command(Command::SetSpeed, 0, 0, {1, inf}), command(Command::SetSpeed, 0, 0, {nan, 1})})
         require(!handle.send(payload), "invalid command accepted");
     params.limits = {1, 1};
-    require(!handle.start(params) && arrived(10, 170) && connections == 1, "speed alone must not reconnect/reset");
+    require(!handle.open(params) && arrived(10, 170) && connections == 1, "speed alone must not reconnect/reset");
     require(handle.send(command(Command::SetSpeed, nan, nan, {0, 0})), "unused target fields should not reject speed");
     require(handle.send(command(Command::GoTo, 80, -50)), "zero-speed aim");
     const int before = frames;
@@ -114,15 +114,15 @@ static void traffic()
     const int stopped = frames;
     require(until([&] { return frames >= stopped + 5; }) && arrived(10, 170), "stop did not clear target");
     require(handle.send(command(Command::GoTo, 80, -50)) && arrived(80, -50), "retarget after halt");
-    handle.stop();
+    handle.close();
     const int closed = frames;
-    handle.stop();
+    handle.close();
     QCoreApplication::processEvents();
     require(!handle.isOpen() && !handle.isRunning() && frames == closed && workerDelivery && validTime, "synchronous stop/time/worker delivery");
     params.startPan = -10;
     params.startTilt = 190;
-    require(handle.start(params) && arrived(350, -170), "reopen initial normalization");
-    handle.stop();
+    require(handle.open(params) && arrived(350, -170), "reopen initial normalization");
+    handle.close();
 }
 
 static void closeDuringCallback()
@@ -132,7 +132,7 @@ static void closeDuringCallback()
     auto handle = std::make_unique<CallbackHandle<SimGimbalHandle>>([&](const QByteArray &, RxTime) {
         if (first.exchange(false)) { entered.release(); release.acquire(); exited = true; }
     });
-    require(handle->start(SimGimbalParams{0, 0, 1ms, {0, 0}}), "callback fixture start");
+    require(handle->open(SimGimbalParams{0, 0, 1ms, {0, 0}}), "callback fixture start");
     require(entered.tryAcquire(1, 2000), "callback fixture entry");
     std::jthread unblock([&] { std::this_thread::sleep_for(30ms); release.release(); });
     handle.reset(); // No GUI pumping: destructor must wait for the callback and queued quit.
@@ -140,8 +140,8 @@ static void closeDuringCallback()
     for (int i = 0; i < 40; ++i)
     {
         CallbackHandle<SimGimbalHandle> immediate([](const QByteArray &, RxTime) {});
-        require(immediate.start({}), "immediate start");
-        immediate.stop();
+        require(immediate.open({}), "immediate start");
+        immediate.close();
         require(!immediate.isRunning() && !immediate.isOpen(), "stop during open");
     }
 }

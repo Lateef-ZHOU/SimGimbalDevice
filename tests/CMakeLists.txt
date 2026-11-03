@@ -1,3 +1,4 @@
+add_subdirectory(handle)
 file(GLOB_RECURSE headers "${CMAKE_CURRENT_SOURCE_DIR}/../include/*.h")
 add_executable(SimGimbalDevice_smoke smoke.cpp)
 target_link_libraries(SimGimbalDevice_smoke PRIVATE Lidar::SimGimbalDevice LidarSimGimbalDeviceplugin

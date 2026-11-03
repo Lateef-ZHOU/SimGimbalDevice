@@ -2,8 +2,14 @@ cmake_minimum_required(VERSION 3.28)
 project(LidarSimGimbalDevice LANGUAGES CXX)
 find_package(Qt6 6.11.2 REQUIRED COMPONENTS Quick Qml GuiPrivate ShaderTools)
 set(CMAKE_AUTOMOC ON)
+add_subdirectory(handle)
 include(cmake/Dependencies.cmake)
 file(GLOB_RECURSE headers CONFIGURE_DEPENDS "include/*.h")
+list(REMOVE_ITEM headers
+    "${CMAKE_CURRENT_SOURCE_DIR}/include/SimGimbalHandle.h"
+    "${CMAKE_CURRENT_SOURCE_DIR}/include/SimGimbalProtocol.h"
+    "${CMAKE_CURRENT_SOURCE_DIR}/include/GimbalMotion.h"
+)
 file(GLOB_RECURSE views CONFIGURE_DEPENDS RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}" "include/*.qml")
 foreach(view IN LISTS views)
     get_filename_component(name "${view}" NAME)

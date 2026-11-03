@@ -24,11 +24,30 @@
 // 速度设置由 QML 官邸持有，连接与调速显式交入；本层只校验和成帧。
 // 电机在句柄线程保留生效限速，定位与 Collector 仍只带目标，不回读界面设置。
 // ============================================================
+// Qt 元对象末端：Handle 与 Device 共用一个 QObject；析构先等上传退出。
+class SimGimbalCore final : public Device<SimGimbalHandle, SimGimbalCollector>
+{
+    Q_OBJECT
+    Q_PROPERTY(QString displayName READ displayName CONSTANT)
+    Q_PROPERTY(QString subtitle READ subtitle CONSTANT)
+    Q_PROPERTY(QObject *logSource READ logSourceObject CONSTANT)
+    Q_PROPERTY(bool isOpen READ isOpen)
+    Q_PROPERTY(bool isLocked READ isLocked)
+    Q_PROPERTY(QString holder READ holder)
+public:
+    using Device::Device;
+    ~SimGimbalCore() override { PreDestruction(); }
+Q_SIGNALS:
+    void lockChanged(HandleCore::ResourcePhase phase) override;
+private:
+    void PreDestruction() noexcept final { Device::PreDestruction(); }
+};
+
 class SimGimbalDevice final
 #ifdef Q_MOC_RUN
     : public GMBDeviceBase // 模板层继承的族级元对象。
 #else
-    : public GMBDevice<SimGimbalHandle, SimGimbalCollector>
+    : public GMBDevice<SimGimbalCore>
 #endif
 {
     Q_OBJECT

@@ -55,13 +55,13 @@ private:
     {
         if (!GimbalMotion::Pose{p.startPan, p.startTilt}.isFinite() || !p.limits.isValid())
         {
-            Q_EMIT logMessage(QStringLiteral("虚拟云台初始角度须有限，限速须有限且非负"));
+            Q_EMIT logMessage(QStringLiteral("虚拟转台初始角度须有限，限速须有限且非负"));
             return {};
         }
         // QTimer 的毫秒入口使用 int；拒绝截断、零周期和负周期。
         if (p.tick.count() <= 0 || p.tick.count() > std::numeric_limits<int>::max())
         {
-            Q_EMIT logMessage(QStringLiteral("虚拟云台回报周期须为 1..INT_MAX 毫秒"));
+            Q_EMIT logMessage(QStringLiteral("虚拟转台回报周期须为 1..INT_MAX 毫秒"));
             return {};
         }
         return std::make_shared<SimGimbalConn>(p);
@@ -106,7 +106,7 @@ private:
         const auto cmd = SimGimbalWire::decode<SimGimbalWire::Command>(data);
         if (!cmd)
         {
-            Q_EMIT logMessage(QStringLiteral("虚拟云台指令格式错误，未发送"));
+            Q_EMIT logMessage(QStringLiteral("虚拟转台指令格式错误，未发送"));
             return false;
         }
         switch (cmd->kind)
@@ -114,17 +114,17 @@ private:
         case SimGimbalWire::Command::GoTo:
             if (GimbalMotion::Pose{cmd->pan, cmd->tilt}.isFinite())
                 break;
-            Q_EMIT logMessage(QStringLiteral("虚拟云台目标角度须为有限值，未发送"));
+            Q_EMIT logMessage(QStringLiteral("虚拟转台目标角度须为有限值，未发送"));
             return false;
         case SimGimbalWire::Command::SetSpeed:
             if (cmd->limits.isValid())
                 break;
-            Q_EMIT logMessage(QStringLiteral("虚拟云台限速须有限且非负，未发送"));
+            Q_EMIT logMessage(QStringLiteral("虚拟转台限速须有限且非负，未发送"));
             return false;
         case SimGimbalWire::Command::Stop:
             break;
         default:
-            Q_EMIT logMessage(QStringLiteral("虚拟云台指令类型未知，未发送"));
+            Q_EMIT logMessage(QStringLiteral("虚拟转台指令类型未知，未发送"));
             return false;
         }
         const bool queued = QMetaObject::invokeMethod(
@@ -145,7 +145,7 @@ private:
             },
             Qt::QueuedConnection);
         if (!queued)
-            Q_EMIT logMessage(QStringLiteral("虚拟云台指令投递失败"));
+            Q_EMIT logMessage(QStringLiteral("虚拟转台指令投递失败"));
         return queued;
     }
 

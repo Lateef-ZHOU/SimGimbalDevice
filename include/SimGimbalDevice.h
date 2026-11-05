@@ -77,7 +77,7 @@ public:
 
     ~SimGimbalDevice() override { PreDestruction(); }
 
-    explicit SimGimbalDevice(QObject *parent) : GMBDevice(QStringLiteral("虚拟云台"), QStringLiteral("仿真 · 匀速电机"), parent)
+    explicit SimGimbalDevice(QObject *parent) : GMBDevice(QStringLiteral("转台·仿真"), QStringLiteral("双轴"), parent)
     {
         setObjectName(QStringLiteral("SimGimbal")); // ASCII 标识：落盘会话目录名用
     }
@@ -100,7 +100,7 @@ public Q_SLOTS:
             return false;
         if (!this->device().open(SimGimbalParams{.startPan = 0.0, .startTilt = 0.0, .tick = SimGimbalConfig::uplinkInterval, .limits = *limits}))
         {
-            Q_EMIT this->device().logMessage(QStringLiteral("虚拟云台已在运行"));
+            Q_EMIT this->device().logMessage(QStringLiteral("虚拟转台已在运行"));
             return false;
         }
         return true;
@@ -133,7 +133,7 @@ private:
     {
         if (!std::isfinite(pan) || !std::isfinite(tilt))
         {
-            Q_EMIT this->device().logMessage(QStringLiteral("虚拟云台速度必须是有限数值，未提交"));
+            Q_EMIT this->device().logMessage(QStringLiteral("虚拟转台速度必须是有限数值，未提交"));
             return std::nullopt;
         }
         const auto normalize = [](const double value) {
@@ -163,7 +163,7 @@ private:
     {
         if (!SimGimbalVocab::withinTravel(target.pan(), target.tilt()))
         {
-            Q_EMIT this->device().logMessage(QStringLiteral("目标云台角（水平 %1°，俯仰 %2°）超出行程，未下发")
+            Q_EMIT this->device().logMessage(QStringLiteral("目标转台角（水平 %1°，俯仰 %2°）超出行程，未下发")
                                             .arg(target.pan(), 0, 'f', 2).arg(target.tilt(), 0, 'f', 2));
             return false;
         }

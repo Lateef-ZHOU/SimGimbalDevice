@@ -12,17 +12,17 @@ Section {
     required property var settings
     title: qsTr("设备连接")
 
-    Label {
+    HintText {
         text: qsTr("虚拟电机：出生在水平 0°、俯仰 0°，按节拍回报位形；连接即起、断开即停。没有外部设备，连接就是上电。")
-        color: palette.placeholderText
-        font.pointSize: 9
-        wrapMode: Text.Wrap
-        Layout.preferredWidth: 1
-        Layout.fillWidth: true
     }
     DoubleButtonRow {
-        firstAction: Action { text: qsTr("连接")
-                 onTriggered: root.device.open(root.settings.panSpeed, root.settings.tiltSpeed) }
-        secondAction: Action { text: qsTr("断开"); onTriggered: root.device.close() }
+        firstAction: Action {
+            text: qsTr("连接")
+            onTriggered: root.device.open(root.settings.panSpeed, root.settings.tiltSpeed)
+        }
+        secondAction: Action {
+            text: qsTr("断开")
+            onTriggered: root.device.close()
+        }
     }
 }

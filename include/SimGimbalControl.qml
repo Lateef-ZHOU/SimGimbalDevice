@@ -15,44 +15,57 @@ Section {
 
     // 离线只保存输入；在线提交完整两轴，发送失败不接受新值。SliderField 回读原值。
     function commitSpeed(pan: bool, value: real): void {
-        const previous = pan ? root.settings.panSpeed : root.settings.tiltSpeed
-        if (value === previous) return
-        const label = pan ? qsTr("水平速度") : qsTr("俯仰速度")
+        const previous = pan ? root.settings.panSpeed : root.settings.tiltSpeed;
+        if (value === previous)
+            return;
+        const label = pan ? qsTr("水平速度") : qsTr("俯仰速度");
         if (root.settings.deviceState.holder !== undefined && root.settings.deviceState.holder !== null) {
-            root.settings.logMessage(qsTr("设备正被占用，%1未改").arg(label))
-            return
+            root.settings.logMessage(qsTr("设备正被占用，%1未改").arg(label));
+            return;
         }
-        const panSpeed = pan ? value : root.settings.panSpeed
-        const tiltSpeed = pan ? root.settings.tiltSpeed : value
-        if (root.settings.deviceState.isOpen && !root.device.setSpeeds(panSpeed, tiltSpeed)) return
-        if (pan) root.settings.panSpeed = value
-        else root.settings.tiltSpeed = value
-        root.settings.logMessage(qsTr("%1：%2 °/s").arg(label).arg(value.toFixed(1)))
+        const panSpeed = pan ? value : root.settings.panSpeed;
+        const tiltSpeed = pan ? root.settings.tiltSpeed : value;
+        if (root.settings.deviceState.isOpen && !root.device.setSpeeds(panSpeed, tiltSpeed))
+            return;
+        if (pan)
+            root.settings.panSpeed = value;
+        else
+            root.settings.tiltSpeed = value;
+        root.settings.logMessage(qsTr("%1：%2 °/s").arg(label).arg(value.toFixed(1)));
     }
 
-    Label { text: qsTr("电机"); font.bold: true }
+    Subheading {
+        text: qsTr("电机")
+    }
     FieldRow {
         label: qsTr("水平限速（°/s）")
-        SliderField { Layout.fillWidth: true; decimals: 1
-                      from: root.parameters.speedStep; to: root.parameters.speedMax
-                      stepSize: root.parameters.speedStep
-                      value: root.settings.panSpeed
-                      onCommitted: function (v) { root.commitSpeed(true, v) } }
+        SliderField {
+            Layout.fillWidth: true
+            decimals: 1
+            from: root.parameters.speedStep
+            to: root.parameters.speedMax
+            stepSize: root.parameters.speedStep
+            value: root.settings.panSpeed
+            onCommitted: function (v) {
+                root.commitSpeed(true, v);
+            }
+        }
     }
     FieldRow {
         label: qsTr("俯仰限速（°/s）")
-        SliderField { Layout.fillWidth: true; decimals: 1
-                      from: root.parameters.speedStep; to: root.parameters.speedMax
-                      stepSize: root.parameters.speedStep
-                      value: root.settings.tiltSpeed
-                      onCommitted: function (v) { root.commitSpeed(false, v) } }
+        SliderField {
+            Layout.fillWidth: true
+            decimals: 1
+            from: root.parameters.speedStep
+            to: root.parameters.speedMax
+            stepSize: root.parameters.speedStep
+            value: root.settings.tiltSpeed
+            onCommitted: function (v) {
+                root.commitSpeed(false, v);
+            }
+        }
     }
-    Label {
+    HintText {
         text: qsTr("两轴各按限速匀速走圆周短程，到点即停，没有加减速段。")
-        color: palette.placeholderText
-        font.pointSize: 9
-        wrapMode: Text.Wrap
-        Layout.preferredWidth: 1
-        Layout.fillWidth: true
     }
 }

@@ -88,3 +88,8 @@ ctest --test-dir build-handle -C Release --output-on-failure
 仿真 Handle 验证同步使用 open/close 连接入口；运动定时器及重连关闭行为不变。
 
 Windows 独立 Handle 构建与 CTest 2/2 通过，主程序增量构建和八秒离屏冒烟通过。 依赖固定到相邻本地提交，尚未推送，联调使用源码覆盖。
+
+
+### 2026-11-05 公共视觉与连接布局
+
+说明与小标题使用 UICore HintText/Subheading；虚拟设备连接布局和运动参数不变。 本轮仅本地整理，未推送；Windows 集成验证记录见主程序维护操作。

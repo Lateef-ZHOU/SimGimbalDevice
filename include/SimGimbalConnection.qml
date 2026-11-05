@@ -20,11 +20,9 @@ Section {
         Layout.preferredWidth: 1
         Layout.fillWidth: true
     }
-    RowLayout {
-        Layout.fillWidth: true
-        spacing: 8
-        Button { Layout.fillWidth: true; text: qsTr("连接")
-                 onClicked: root.device.open(root.settings.panSpeed, root.settings.tiltSpeed) }
-        Button { Layout.fillWidth: true; text: qsTr("断开"); onClicked: root.device.close() }
+    DoubleButtonRow {
+        firstAction: Action { text: qsTr("连接")
+                 onTriggered: root.device.open(root.settings.panSpeed, root.settings.tiltSpeed) }
+        secondAction: Action { text: qsTr("断开"); onTriggered: root.device.close() }
     }
 }

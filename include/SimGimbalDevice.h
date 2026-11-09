@@ -169,9 +169,9 @@ private:
             return std::nullopt;
         return PanTiltModel(r->pan, r->tilt);
     }
-    bool issueGoTo(const GMBMoveParameters &parameters) override
+    bool issueGoTo(const std::optional<GMBMoveParameters> &parameters) override
     {
-        return this->send(SimGimbalVocab::startOf(parameters.target), {}); // 空令牌 = 我不持锁；参数已经 paramsFor 规范化
+        return parameters && this->send(SimGimbalVocab::startOf(parameters->target), {}); // 空令牌 = 我不持锁
     }
 
 };

@@ -80,15 +80,16 @@ public:
     }
 
     // 型号判据（任务预验、造斗与直发共用）：虚拟定位协议只带目标，交出的参数去掉速度；越界返回空并记录原因。
-    [[nodiscard]] std::optional<GMBMoveParameters> paramsFor(const GMBMoveParameters &draft) const override
+    [[nodiscard]] std::optional<GMBMoveParameters> paramsFor(const PanTiltModel &target, const std::chrono::milliseconds hold,
+        const std::optional<GMBMoveParameters::Speeds> &) const override
     {
-        if (!SimGimbalVocab::withinTravel(draft.target.pan(), draft.target.tilt()))
+        if (!SimGimbalVocab::withinTravel(target.pan(), target.tilt()))
         {
             Q_EMIT this->logMessage(QStringLiteral("目标转台角（水平 %1°，俯仰 %2°）超出行程，未下发")
-                                        .arg(draft.target.pan(), 0, 'f', 2).arg(draft.target.tilt(), 0, 'f', 2));
+                                        .arg(target.pan(), 0, 'f', 2).arg(target.tilt(), 0, 'f', 2));
             return std::nullopt;
         }
-        return GMBMoveParameters{draft.target, draft.hold, std::nullopt};
+        return GMBMoveParameters{target, hold, std::nullopt};
     }
 
 Q_SIGNALS:
@@ -151,9 +152,9 @@ private:
     }
 
     // 按校验后的参数造一只完整的本型号收集器；虚拟定位只带目标，速度由连接/调速单独设置。
-    [[nodiscard]] std::shared_ptr<SimGimbalCollector> makeMoveCollector(const GMBMoveParameters &draft) const override
+    [[nodiscard]] std::shared_ptr<SimGimbalCollector> makeMoveCollector(const GMBMoveParameters &requested) const override
     {
-        const auto parameters = paramsFor(draft);
+        const auto parameters = paramsFor(requested.target, requested.hold, requested.speeds);
         if (!parameters)
             return nullptr;
         return SimGimbalCollector::create(parameters->target, SimGimbalConfig::angleTol, parameters->hold,
@@ -168,10 +169,9 @@ private:
             return std::nullopt;
         return PanTiltModel(r->pan, r->tilt);
     }
-    bool issueGoTo(const GMBMoveParameters &draft) override
+    bool issueGoTo(const GMBMoveParameters &parameters) override
     {
-        const auto parameters = paramsFor(draft);
-        return parameters && this->send(SimGimbalVocab::startOf(parameters->target), {}); // 空令牌 = 我不持锁
+        return this->send(SimGimbalVocab::startOf(parameters.target), {}); // 空令牌 = 我不持锁；参数已经 paramsFor 规范化
     }
 
 };

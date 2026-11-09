@@ -24,31 +24,21 @@
 // 速度设置由 QML 官邸持有，连接与调速显式交入；本层只校验和成帧。
 // 电机在句柄线程保留生效限速，定位与 Collector 仍只带目标，不回读界面设置。
 // ============================================================
-// Qt 元对象末端：Handle 与 Device 共用一个 QObject；析构先等上传退出。
-class SimGimbalCore final : public Device<SimGimbalHandle, SimGimbalCollector>
+// Qt 元对象末端：Handle、Device 与云台族共用这一个 QObject；析构首句先停收包再拆派生状态。
+class SimGimbalDevice final
+#ifdef Q_MOC_RUN
+    : public SimGimbalHandle // 元对象基类：唯一 QObject 来自 Handle，模板层不加 Q_OBJECT。
+#else
+    : public GMBDevice<SimGimbalHandle, SimGimbalCollector>
+#endif
 {
     Q_OBJECT
     Q_PROPERTY(QString displayName MEMBER displayName CONSTANT)
     Q_PROPERTY(QString subtitle MEMBER subtitle CONSTANT)
     Q_PROPERTY(bool isOpen READ isOpen)
     Q_PROPERTY(QVariant holder READ qmlHolder)
-public:
-    using Device::Device;
-    ~SimGimbalCore() override { PreDestruction(); }
-Q_SIGNALS:
-    void lockChanged(HandleCore::ResourcePhase phase) override;
-private:
-    void PreDestruction() noexcept final { Device::PreDestruction(); }
-};
-
-class SimGimbalDevice final
-#ifdef Q_MOC_RUN
-    : public GMBDeviceBase // 模板层继承的族级元对象。
-#else
-    : public GMBDevice<SimGimbalCore>
-#endif
-{
-    Q_OBJECT
+    Q_PROPERTY(WorldModel mounting READ mounting NOTIFY mountingChanged)
+    Q_PROPERTY(bool slipRing READ hasSlipRing CONSTANT)
     QML_ELEMENT
     QML_ATTACHED(SimGimbalDevice)
     QML_UNCREATABLE("由对应 QML 官邸创建和拥有")
@@ -89,6 +79,11 @@ public:
         return SimGimbalVocab::withinTravel(pan, tilt);
     }
 
+Q_SIGNALS:
+    void lockChanged(HandleCore::ResourcePhase phase) override;
+    void mountingChanged(const WorldModel &mounting) override;
+    void anglesReady(RxTime at, double pan, double tilt, double azimuth, double elevation) override;
+
 public:
     using GMBDevice::setMounting;
 public Q_SLOTS:
@@ -98,9 +93,9 @@ public Q_SLOTS:
         const auto limits = speedLimits(panSpeed, tiltSpeed);
         if (!limits)
             return false;
-        if (!this->device().open(SimGimbalParams{.startPan = 0.0, .startTilt = 0.0, .tick = SimGimbalConfig::uplinkInterval, .limits = *limits}))
+        if (!SimGimbalHandle::open(SimGimbalParams{.startPan = 0.0, .startTilt = 0.0, .tick = SimGimbalConfig::uplinkInterval, .limits = *limits}))
         {
-            Q_EMIT this->device().logMessage(QStringLiteral("虚拟转台已在运行"));
+            Q_EMIT this->logMessage(QStringLiteral("虚拟转台已在运行"));
             return false;
         }
         return true;
@@ -108,9 +103,9 @@ public Q_SLOTS:
     bool setSpeeds(const double panSpeed, const double tiltSpeed)
     {
         const auto limits = speedLimits(panSpeed, tiltSpeed);
-        return limits && this->device().send(SimGimbalVocab::speedOf(*limits), {});
+        return limits && this->send(SimGimbalVocab::speedOf(*limits), {});
     }
-    void close() { this->device().close(); }
+    void close() { SimGimbalHandle::close(); }
     bool issueGoTo(const double pan, const double tilt, const QVariantMap &parameters)
     {
         return GMBDevice::issueGoTo(pan, tilt, parameters);
@@ -119,7 +114,7 @@ public Q_SLOTS:
     {
         return GMBDevice::setMounting(WorldModel(azimuth, elevation, roll), {});
     }
-    bool issueStop() override { return this->device().send(SimGimbalVocab::stopOf(), {}); }
+    bool issueStop() override { return this->send(SimGimbalVocab::stopOf(), {}); }
 
 private:
     void PreDestruction() noexcept final
@@ -133,7 +128,7 @@ private:
     {
         if (!std::isfinite(pan) || !std::isfinite(tilt))
         {
-            Q_EMIT this->device().logMessage(QStringLiteral("虚拟转台速度必须是有限数值，未提交"));
+            Q_EMIT this->logMessage(QStringLiteral("虚拟转台速度必须是有限数值，未提交"));
             return std::nullopt;
         }
         const auto normalize = [](const double value) {
@@ -163,11 +158,11 @@ private:
     {
         if (!SimGimbalVocab::withinTravel(target.pan(), target.tilt()))
         {
-            Q_EMIT this->device().logMessage(QStringLiteral("目标转台角（水平 %1°，俯仰 %2°）超出行程，未下发")
+            Q_EMIT this->logMessage(QStringLiteral("目标转台角（水平 %1°，俯仰 %2°）超出行程，未下发")
                                             .arg(target.pan(), 0, 'f', 2).arg(target.tilt(), 0, 'f', 2));
             return false;
         }
-        return this->device().send(SimGimbalVocab::startOf(target), {}); // 空令牌 = 我不持锁
+        return this->send(SimGimbalVocab::startOf(target), {}); // 空令牌 = 我不持锁
     }
 
 };

@@ -8,7 +8,7 @@ import QtQuick.Controls
 ModulePage {
     id: root
     readonly property string kind: "device"
-    readonly property GMBDeviceBase family: internals.device
+    readonly property QtObject family: internals.device // 云台族基不是 QObject，交出设备对象本身
     sections: [connectionSection, positioningSection, modelControlSection].filter(item => item !== null)
     function worldHistory(begin, end) { return angles ? angles.worldHistory(begin, end) : undefined }
     function moveParameters() { return ({}) }
@@ -40,10 +40,10 @@ ModulePage {
         parameters: internals.controlParameters
     }
     objectName: "SimGimbalModule"
-    readonly property string name: internals.device.device.displayName
-    readonly property string subtitle: internals.device.device.subtitle
-    // 借用公共只读资源接口，不暴露具体型号后端或缓存状态。
-    readonly property var deviceState: internals.device.device
+    readonly property string name: internals.device.displayName
+    readonly property string subtitle: internals.device.subtitle
+    // 借用公共只读资源接口（即设备对象本身），不另存状态。
+    readonly property var deviceState: internals.device
 
     // 连接异步完成：启动期间的编辑仍归 QML，此时把最新值排入电机线程。
     // 对齐失败就关闭本次连接，不能让界面设置与仍在运行的电机限速分离。
@@ -63,7 +63,7 @@ ModulePage {
         readonly property var controlParameters: device.controlParameters()
     }
     Connections {
-        target: internals.device.device
+        target: internals.device
         function onLogMessage(text): void { root.logMessage(text) }
     }
 }

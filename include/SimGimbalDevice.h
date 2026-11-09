@@ -79,6 +79,18 @@ public:
         return SimGimbalVocab::withinTravel(pan, tilt);
     }
 
+    // 型号判据（任务预验、造斗与直发共用）：虚拟定位协议只带目标，交出的参数去掉速度；越界返回空并记录原因。
+    [[nodiscard]] std::optional<GMBMoveParameters> paramsFor(const GMBMoveParameters &draft) const override
+    {
+        if (!SimGimbalVocab::withinTravel(draft.target.pan(), draft.target.tilt()))
+        {
+            Q_EMIT this->logMessage(QStringLiteral("目标转台角（水平 %1°，俯仰 %2°）超出行程，未下发")
+                                        .arg(draft.target.pan(), 0, 'f', 2).arg(draft.target.tilt(), 0, 'f', 2));
+            return std::nullopt;
+        }
+        return GMBMoveParameters{draft.target, draft.hold, std::nullopt};
+    }
+
 Q_SIGNALS:
     void lockChanged(HandleCore::ResourcePhase phase) override;
     void mountingChanged(const WorldModel &mounting) override;
@@ -138,13 +150,15 @@ private:
         return MotionLimits{normalize(pan), normalize(tilt)};
     }
 
-    [[nodiscard]] std::shared_ptr<const SimGimbalCollector> makeMoveCollector(
-        const PanTiltModel &target, const std::chrono::milliseconds hold, const GMBMoveParameters &) const override
+    // 按校验后的参数造一只完整的本型号收集器；虚拟定位只带目标，速度由连接/调速单独设置。
+    [[nodiscard]] std::shared_ptr<SimGimbalCollector> makeMoveCollector(const GMBMoveParameters &draft) const override
     {
-        if (!SimGimbalVocab::withinTravel(target.pan(), target.tilt())) // 与预览和设备页直发同一道检查
+        const auto parameters = paramsFor(draft);
+        if (!parameters)
             return nullptr;
-        return SimGimbalCollector::createPrototype(target, SimGimbalConfig::angleTol, hold, SimGimbalVocab::startOf(target),
-                                              SimGimbalVocab::stopOf(), SimGimbalConfig::expectedDurationMs);
+        return SimGimbalCollector::create(parameters->target, SimGimbalConfig::angleTol, parameters->hold,
+                                          SimGimbalVocab::startOf(parameters->target), SimGimbalVocab::stopOf(),
+                                          SimGimbalConfig::expectedDurationMs);
     }
     // [worker] 一张回报 → 实测位形。不是本线协议的字节：不回显、不喂斗。
     [[nodiscard]] std::optional<PanTiltModel> decodeStream(const QByteArray &raw) override
@@ -154,15 +168,10 @@ private:
             return std::nullopt;
         return PanTiltModel(r->pan, r->tilt);
     }
-    bool issueGoTo(const PanTiltModel &target, const GMBMoveParameters &) override
+    bool issueGoTo(const GMBMoveParameters &draft) override
     {
-        if (!SimGimbalVocab::withinTravel(target.pan(), target.tilt()))
-        {
-            Q_EMIT this->logMessage(QStringLiteral("目标转台角（水平 %1°，俯仰 %2°）超出行程，未下发")
-                                            .arg(target.pan(), 0, 'f', 2).arg(target.tilt(), 0, 'f', 2));
-            return false;
-        }
-        return this->send(SimGimbalVocab::startOf(target), {}); // 空令牌 = 我不持锁
+        const auto parameters = paramsFor(draft);
+        return parameters && this->send(SimGimbalVocab::startOf(parameters->target), {}); // 空令牌 = 我不持锁
     }
 
 };

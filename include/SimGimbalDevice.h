@@ -89,7 +89,7 @@ public:
                                         .arg(target.pan(), 0, 'f', 2).arg(target.tilt(), 0, 'f', 2));
             return std::nullopt;
         }
-        return GMBMoveParameters{target, hold, std::nullopt};
+        return GMBMoveParameters(*this, target, hold, std::nullopt);
     }
 
 Q_SIGNALS:
@@ -151,16 +151,6 @@ private:
         return MotionLimits{normalize(pan), normalize(tilt)};
     }
 
-    // 按校验后的参数造一只完整的本型号收集器；虚拟定位只带目标，速度由连接/调速单独设置。
-    [[nodiscard]] std::shared_ptr<SimGimbalCollector> makeMoveCollector(const GMBMoveParameters &requested) const override
-    {
-        const auto parameters = paramsFor(requested.target, requested.hold, requested.speeds);
-        if (!parameters)
-            return nullptr;
-        return SimGimbalCollector::create(parameters->target, SimGimbalConfig::angleTol, parameters->hold,
-                                          SimGimbalVocab::startOf(parameters->target), SimGimbalVocab::stopOf(),
-                                          SimGimbalConfig::expectedDurationMs);
-    }
     // [worker] 一张回报 → 实测位形。不是本线协议的字节：不回显、不喂斗。
     [[nodiscard]] std::optional<PanTiltModel> decodeStream(const QByteArray &raw) override
     {

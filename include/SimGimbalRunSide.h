@@ -54,5 +54,15 @@ namespace SimGimbalVocab
 }
 } // namespace SimGimbalVocab
 
-struct SimGimbalCollectorTag;
+// 虚拟云台型号标签：定位只带目标，速度由连接 / 调速单独设置。
+struct SimGimbalCollectorTag
+{
+    static constexpr double tolerance = SimGimbalConfig::angleTol;
+    static constexpr int timeoutMs = SimGimbalConfig::expectedDurationMs;
+    [[nodiscard]] static QList<QByteArray> startOf(const GMBMoveParameters &parameters)
+    {
+        return SimGimbalVocab::startOf(parameters.target);
+    }
+    [[nodiscard]] static QList<QByteArray> stopOf() { return SimGimbalVocab::stopOf(); }
+};
 using SimGimbalCollector = TypedGMBCollector<SimGimbalCollectorTag>;

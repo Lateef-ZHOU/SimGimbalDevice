@@ -11,7 +11,6 @@ ModulePage {
     readonly property QtObject family: internals.device // 云台族基不是 QObject，交出设备对象本身
     sections: [connectionSection, positioningSection, modelControlSection].filter(item => item !== null)
     function worldHistory(begin, end) { return angles ? angles.worldHistory(begin, end) : undefined }
-    function moveParameters() { return ({}) }
     property real panSpeed: internals.controlParameters.panSpeedDefault
     property real tiltSpeed: internals.controlParameters.tiltSpeedDefault
     mainPages: [Page {

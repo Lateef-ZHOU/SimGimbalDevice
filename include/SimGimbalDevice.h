@@ -119,9 +119,9 @@ public Q_SLOTS:
         return limits && this->send(SimGimbalVocab::speedOf(*limits), {});
     }
     void close() { SimGimbalHandle::close(); }
-    bool issueGoTo(const double pan, const double tilt, const QVariantMap &parameters)
+    bool issueGoTo(const double pan, const double tilt, const double panSpeed, const double tiltSpeed)
     {
-        return GMBDevice::issueGoTo(pan, tilt, parameters);
+        return GMBDevice::issueGoTo(pan, tilt, panSpeed, tiltSpeed);
     }
     bool setMounting(const double azimuth, const double elevation, const double roll)
     {

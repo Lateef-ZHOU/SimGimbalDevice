@@ -80,8 +80,8 @@ public:
     }
 
     // 型号判据（任务预验、造斗与直发共用）：虚拟定位协议只带目标，交出的参数去掉速度；越界返回空并记录原因。
-    [[nodiscard]] std::optional<GMBMoveParameters> paramsFor(const PanTiltModel &target, const std::chrono::milliseconds hold,
-        const std::optional<GMBMoveParameters::Speeds> &) const override
+    [[nodiscard]] std::optional<GMBParameters> paramsFor(const PanTiltModel &target, const std::chrono::milliseconds hold,
+        const std::optional<GMBParameters::Speeds> &) const override
     {
         if (!SimGimbalVocab::withinTravel(target.pan(), target.tilt()))
         {
@@ -89,7 +89,7 @@ public:
                                         .arg(target.pan(), 0, 'f', 2).arg(target.tilt(), 0, 'f', 2));
             return std::nullopt;
         }
-        return GMBMoveParameters(*this, target, hold, std::nullopt);
+        return GMBParameters(*this, target, hold, std::nullopt);
     }
 
 Q_SIGNALS:

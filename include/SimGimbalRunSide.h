@@ -59,7 +59,7 @@ struct SimGimbalCollectorTag
 {
     static constexpr double tolerance = SimGimbalConfig::angleTol;
     static constexpr int timeoutMs = SimGimbalConfig::expectedDurationMs;
-    [[nodiscard]] static QList<QByteArray> startOf(const GMBMoveParameters &parameters)
+    [[nodiscard]] static QList<QByteArray> startOf(const GMBParameters &parameters)
     {
         return SimGimbalVocab::startOf(parameters.target);
     }

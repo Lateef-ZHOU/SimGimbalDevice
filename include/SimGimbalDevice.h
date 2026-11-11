@@ -127,7 +127,7 @@ public Q_SLOTS:
     {
         return GMBDevice::setMounting(WorldModel(azimuth, elevation, roll), {});
     }
-    bool issueStop() override { return this->send(SimGimbalVocab::stopOf(), {}); }
+    bool issueStop() { return GMBDevice::issueStop(); }
 
 private:
     void PreDestruction() noexcept final
@@ -158,10 +158,6 @@ private:
         if (!r)
             return std::nullopt;
         return PanTiltModel(r->pan, r->tilt);
-    }
-    bool issueGoTo(const std::optional<GMBMoveParameters> &parameters) override
-    {
-        return parameters && this->send(SimGimbalVocab::startOf(parameters->target), {}); // 空令牌 = 我不持锁
     }
 
 };
